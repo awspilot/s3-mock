@@ -2,7 +2,6 @@
 /*
 event
 	account_id
-	body
 */
 
 module.exports = function( event, response ) {
