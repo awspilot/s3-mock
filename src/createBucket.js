@@ -18,7 +18,7 @@ module.exports = function( event, response ) {
 
 			var bucket = data.toString().split(' > ')[1]
 
-			console.log(bucket)
+			//console.log(bucket)
 
 			if ( bucket.toLowerCase() === event.bucket.toLowerCase() ) {
 				bucket_exists = true;
