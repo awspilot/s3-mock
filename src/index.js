@@ -1,5 +1,22 @@
 var http = require('http')
 async=require('async')
+var levelup = require('levelup')
+var leveldown = require('leveldown')
+Ractive = require('ractive')
+Ractive.DEBUG = false;
+
+
+var listBuckets = require( './listBuckets' );
+var createBucket = require( './createBucket' );
+var deleteBucket = require( './deleteBucket' );
+var getBucketLocation = require('./getBucketLocation')
+
+var storage_dir = process.env.S3_STORAGE_PATH ||  '/efs/storage/';
+console.log('[s3] storage dir is', storage_dir )
+
+database = {
+	buckets: levelup( leveldown(storage_dir + '/s3/buckets.db') ),
+};
 
 
 
@@ -36,34 +53,63 @@ async.waterfall([
 			response.setHeader('x-amz-id-2', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
 
+			var body = '';
+			request.on('data', function(chunk) {
+				body += chunk.toString(); // convert Buffer to string
+			});
+			request.on('end', function() {
+				console.log("body=", body )
+
+				var account_id = '000000000000';
+				// @todo: extract key from aws4 signature and resolve account_id with iam-mock
+
+				if (request.method === 'DELETE') {
+					var bucket = request.url.slice(1)
+
+					if (request.url.indexOf('?') > 0 )
+						bucket = bucket.slice(0, bucket.indexOf('?') )
+
+					return deleteBucket({
+						account_id: account_id,
+						name: bucket,
+					}, response )
+				}
+
+				if (request.method === 'PUT') {
+
+					var bucket = request.url.slice(1)
+					if (request.url.indexOf('?') > 0 )
+						bucket = bucket.slice(0, bucket.indexOf('?') )
+
+					var region = ((body.match(/<LocationConstraint>(?<region>[a-zA-Z0-9\-]+)<\/LocationConstraint>/i) || {}).groups || {}).region;
+
+					return createBucket({
+						account_id: account_id,
+						bucket: bucket,
+						region: region,
+					}, response )
+				}
+
+				if ( (request.method === 'GET') && (request.url.slice(-9) === '?location') ) {
+					var bucket = request.url.slice(1,-9)
+
+					return getBucketLocation({
+						account_id: account_id,
+						bucket: bucket,
+					}, response )
+				}
 
 
-			return response.end(`<?xml version="1.0" encoding="UTF-8"?>
-				<ListAllMyBucketsResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-					<Owner>
-						<ID>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</ID>
-						<DisplayName>XXXXXXX</DisplayName>
-					</Owner>
-					<Buckets>
-						<Bucket>
-							<Name>Bucket-1</Name>
-							<CreationDate>2015-10-25T00:05:10.000Z</CreationDate>
-						</Bucket>
-						<Bucket>
-							<Name>Bucket-2</Name>
-							<CreationDate>2018-02-22T08:11:19.000Z</CreationDate>
-						</Bucket>
-						<Bucket>
-							<Name>Bucket-3</Name>
-							<CreationDate>2018-02-22T08:03:22.000Z</CreationDate>
-						</Bucket>
-						<Bucket>
-							<Name>Bucket-4</Name>
-							<CreationDate>2018-02-22T08:00:19.000Z</CreationDate>
-						</Bucket>
-					</Buckets>
-				</ListAllMyBucketsResult>
-			`)
+				if ( (request.method === 'GET') && (request.url === '/') ) {
+					return listBuckets({
+						account_id: account_id,
+					}, response )
+				}
+
+				// method not implemented
+				response.statusCode = 404;
+				response.end()
+			})
 
 
 		}
