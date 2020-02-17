@@ -21,17 +21,17 @@ module.exports = function( event, response ) {
 			//if (!bucket_data)
 			//	database.buckets.del(data.key.toString())
 
-			console.log(data.key.toString(), '=', bucket_data || data.value.toString() )
+			//console.log(data.key.toString(), '=', bucket_data || data.value.toString() )
 			buckets_to_return.push({
 				name: bucket_data.name,
 				created_date: new Date(bucket_data.created_at).toISOString(),
 			});
 		})
 		.on('error', function (err) {
-			console.log('Oh my!', err)
+			//console.log('Oh my!', err)
 		})
 		.on('close', function () {
-			console.log('Stream closed')
+			//console.log('Stream closed')
 		})
 		.on('end', function () {
 
