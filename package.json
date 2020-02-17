@@ -1,5 +1,7 @@
 {
 	"dependencies": {
-		"async": "^3.1.1"
+		"async": "^3.1.1",
+		"leveldown": "^5.4.1",
+		"levelup": "^4.3.2"
 	}
 }
