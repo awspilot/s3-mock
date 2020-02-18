@@ -1,6 +1,12 @@
 {
+	"name": "@awspilot/s3-mock",
+	"version": "0.0.1",
+	"description": "itty bitty tiny implementation of an S3 server, only supports putObject, getObject, deleteObject",
 	"scripts": {
 		"test": "mocha --timeout 100000 -S -R spec --exit"
+	},
+	"bin": {
+		"s3-mock": "./cli.js"
 	},
 	"dependencies": {
 		"async": "^3.1.1",
@@ -11,5 +17,15 @@
 	"devDependencies": {
 		"aws-sdk": "^2.620.0",
 		"mocha": "^5.2.0"
+	},
+	"author": {
+		"name": "Adrian Praja",
+		"email": "adrian@databank.io",
+		"url": "https://awspilot.dev"
+	},
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/awspilot/s3-mock"
 	}
 }
