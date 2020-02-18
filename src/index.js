@@ -21,6 +21,7 @@ var createBucket = require( './createBucket' );
 var deleteBucket = require( './deleteBucket' );
 var getBucketLocation = require('./getBucketLocation')
 var putObject = require('./putObject')
+var getObject = require('./getObject')
 var deleteObject = require('./deleteObject')
 var listObjects = require('./listObjects')
 
@@ -153,6 +154,17 @@ async.waterfall([
 						bucket: bucket,
 					}, response )
 				}
+
+				if ( (request.method === 'GET') && (request.url.split('/').length > 2 ) && (request.url.indexOf('?') === -1 ) ) {
+					let bucket = request.url.split('/')[1]
+					let key    = request.url.split('/').slice(2).join('/')
+					return getObject({
+						account_id: account_id,
+						bucket: bucket,
+						key: key,
+					}, response )
+				}
+
 
 				// method not implemented
 				response.statusCode = 404;
