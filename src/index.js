@@ -7,7 +7,7 @@ Ractive = require('ractive')
 Ractive.DEBUG = false;
 
 
-storage_dir = process.env.S3_STORAGE_PATH ||  '/efs/storage';
+storage_dir = process.env.S3_STORAGE_PATH ||  '/storage';
 
 console.log('[s3] storage dir is', storage_dir )
 
