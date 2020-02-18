@@ -22,6 +22,14 @@ module.exports = function( event, response ) {
 	}
 
 
+	try {
+		fs.mkdirSync( storage_dir + '/s3/' + dbpath + '.objects', { recursive: true });
+		fs.writeFileSync( storage_dir + '/s3/' + dbpath + '.objects/' + require('crypto').createHash('md5').update( event.key ).digest("hex"), event.body ) // keys are case sensitive, do not lowercase
+	} catch (e) {
+		response.statusCode = 404;
+		return response.end()
+	}
+
 	database.bucket[dbpath].put( event.key , JSON.stringify({
 		created_at: new Date().getTime(),
 		modified_at: new Date().getTime(),
@@ -33,7 +41,7 @@ module.exports = function( event, response ) {
 			return response.end()
 		}
 
-		//fs.mkdirSync(targetDir, { recursive: true });
+
 
 		response.end()
 	})
