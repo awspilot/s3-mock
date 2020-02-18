@@ -42,7 +42,11 @@ module.exports = function( event, response ) {
 		// also remove leveldb folder
 		var dbpath = event.account_id + '_' + require('crypto').createHash('md5').update( event.name.toLowerCase() ).digest("hex").slice(0,8);
 		var levelpath = storage_dir + '/s3/' + dbpath + '.db'
+		var objectspath = storage_dir + '/s3/' + dbpath + '.objects'
 
+		removeFolder(objectspath, function(err) {
+			console.log(err)
+		})
 
 		removeFolder(levelpath, function(err) {
 			console.log(err)
