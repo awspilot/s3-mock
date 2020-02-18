@@ -63,16 +63,63 @@ describe('putObject', function () {
 				var params = {
 					Bucket: bucket_name,
 					Key: 'ai-d-plm.txt',
-					Body: 'oai',
+					Body: '😁😸🌈',
 				}
 				s3.putObject(params, function( err, data ) {
-					console.log(err)
+					if (err)
+						return cb(err)
+
 					cb()
 				})
 
 			},
 
+			// get object inexistent bucket
+			// function( cb ) {
+			// 	var params = {
+			// 		Bucket: 'me-no-exist',
+			// 		Key: 'ai-d-plm.txt2',
+			// 	}
+			// 	s3.getObject(params, function( err, data ) {
+			// 		console.log("getObject", err, data)
+			// 		cb()
+			// 	})
+			//
+			// },
 
+			// get object inexistent key
+			function( cb ) {
+				var params = {
+					Bucket: bucket_name,
+					Key: 'me-no-exist-key.txt',
+				}
+				s3.getObject(params, function( err, data ) {
+					if (err)
+						return cb()
+
+					cb('this-key-wasnt-suppose-to-exist')
+				})
+
+			},
+
+			function( cb ) {
+				var params = {
+					Bucket: bucket_name,
+					Key: 'ai-d-plm.txt',
+				}
+				s3.getObject(params, function( err, data ) {
+					if (err)
+						return cb(err)
+
+					if ( data.Body.toString() !== '😁😸🌈')
+						return cb('content-failed')
+
+					cb()
+				})
+
+			},
+
+			// delete existent key
 			function( cb ) {
 				var params = {
 					Bucket: bucket_name,
