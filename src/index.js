@@ -1,24 +1,27 @@
 var http = require('http')
 async=require('async')
-var levelup = require('levelup')
-var leveldown = require('leveldown')
+levelup = require('levelup')
+leveldown = require('leveldown')
 Ractive = require('ractive')
 Ractive.DEBUG = false;
 
+
+storage_dir = process.env.S3_STORAGE_PATH ||  '/efs/storage';
+
+console.log('[s3] storage dir is', storage_dir )
+
+database = {
+	buckets: levelup( leveldown(storage_dir + '/s3/buckets.db') ),
+	bucket: {}
+};
 
 var listBuckets = require( './listBuckets' );
 var createBucket = require( './createBucket' );
 var deleteBucket = require( './deleteBucket' );
 var getBucketLocation = require('./getBucketLocation')
-
-var storage_dir = process.env.S3_STORAGE_PATH ||  '/efs/storage/';
-console.log('[s3] storage dir is', storage_dir )
-
-database = {
-	buckets: levelup( leveldown(storage_dir + '/s3/buckets.db') ),
-};
-
-
+var putObject = require('./putObject')
+var deleteObject = require('./deleteObject')
+var listObjects = require('./listObjects')
 
 async.waterfall([
 
@@ -58,36 +61,72 @@ async.waterfall([
 				body += chunk.toString(); // convert Buffer to string
 			});
 			request.on('end', function() {
-				console.log("body=", body )
+				//console.log("body=", body )
 
 				var account_id = '000000000000';
 				// @todo: extract key from aws4 signature and resolve account_id with iam-mock
 
 				if (request.method === 'DELETE') {
-					var bucket = request.url.slice(1)
 
-					if (request.url.indexOf('?') > 0 )
-						bucket = bucket.slice(0, bucket.indexOf('?') )
+					// deleteBucket
+					if ( (request.url.split('/').length === 2) && (request.url[0] === '/')  )  {
+						var bucket = request.url.slice(1)
 
-					return deleteBucket({
-						account_id: account_id,
-						name: bucket,
-					}, response )
+						if (request.url.indexOf('?') > 0 )
+							bucket = bucket.slice(0, bucket.indexOf('?') )
+
+						return deleteBucket({
+							account_id: account_id,
+							name: bucket,
+						}, response )
+					}
+
+
+					// deleteObject
+					if ( request.url.split('/').length > 2 ) {
+						var bucket = request.url.split('/')[1]
+						var key    = request.url.split('/').slice(2).join('/')
+
+						return deleteObject({
+							account_id: account_id,
+							bucket: bucket,
+							key: key,
+						}, response )
+
+					}
 				}
 
 				if (request.method === 'PUT') {
 
-					var bucket = request.url.slice(1)
-					if (request.url.indexOf('?') > 0 )
-						bucket = bucket.slice(0, bucket.indexOf('?') )
+					// createBucket
+					if ( (request.url.split('/').length === 2) && (request.url[0] === '/')  )  {
+						var bucket = request.url.slice(1)
+						if (request.url.indexOf('?') > 0 )
+							bucket = bucket.slice(0, bucket.indexOf('?') )
 
-					var region = ((body.match(/<LocationConstraint>(?<region>[a-zA-Z0-9\-]+)<\/LocationConstraint>/i) || {}).groups || {}).region;
+						var region = ((body.match(/<LocationConstraint>(?<region>[a-zA-Z0-9\-]+)<\/LocationConstraint>/i) || {}).groups || {}).region;
 
-					return createBucket({
-						account_id: account_id,
-						bucket: bucket,
-						region: region,
-					}, response )
+						return createBucket({
+							account_id: account_id,
+							bucket: bucket,
+							region: region,
+						}, response )
+					}
+
+					// putObject
+					if ( request.url.split('/').length > 2 ) {
+						var bucket = request.url.split('/')[1]
+						var key    = request.url.split('/').slice(2).join('/')
+
+						return putObject({
+							account_id: account_id,
+							bucket: bucket,
+							key: key,
+							body: body,
+						}, response )
+					}
+
+
 				}
 
 				if ( (request.method === 'GET') && (request.url.slice(-9) === '?location') ) {
@@ -103,6 +142,14 @@ async.waterfall([
 				if ( (request.method === 'GET') && (request.url === '/') ) {
 					return listBuckets({
 						account_id: account_id,
+					}, response )
+				}
+
+				if ( (request.method === 'GET') && (request.url.split('/').length === 2 ) && (request.url.indexOf('?') === -1 ) ) {
+					var bucket = request.url.slice(1)
+					return listObjects({
+						account_id: account_id,
+						bucket: bucket,
 					}, response )
 				}
 
