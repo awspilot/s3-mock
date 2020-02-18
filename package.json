@@ -1,6 +1,6 @@
 {
 	"name": "@awspilot/s3-mock",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "itty bitty tiny implementation of an S3 server, only supports putObject, getObject, deleteObject",
 	"scripts": {
 		"test": "mocha --timeout 100000 -S -R spec --exit"
