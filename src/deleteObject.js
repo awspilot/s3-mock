@@ -27,6 +27,12 @@ module.exports = function( event, response ) {
 			return response.end()
 		}
 
+		var filepath = storage_dir + '/s3/' + dbpath + '.objects/' + require('crypto').createHash('md5').update( event.key ).digest("hex");
+
+		try {
+			fs.unlinkSync(filepath)
+		} catch (e) {} // its ok if it fails, was removed from db anywayz
+
 		response.end()
 	})
 
