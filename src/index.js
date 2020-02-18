@@ -1,4 +1,5 @@
 var http = require('http')
+fs = require('fs')
 async=require('async')
 levelup = require('levelup')
 leveldown = require('leveldown')
