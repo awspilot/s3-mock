@@ -1,0 +1,4 @@
+storage/
+test/
+package-lock.json
+.nvmrc
