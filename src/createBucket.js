@@ -36,7 +36,25 @@ module.exports = function( event, response ) {
 			if (bucket_exists) {
 
 				response.statusCode = 409;
-				response.end()
+
+// 			<Error>
+//					<Code>BucketAlreadyOwnedByYou</Code>
+//					<Message>Your previous request to create the named bucket succeeded and you already own it.</Message>
+//					<BucketName>${event.bucket}</BucketName>
+//					<RequestId>XXXXXXXXXXXXXXXX</RequestId>
+//					<HostId>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</HostId>
+//				</Error>
+
+				response.end(`
+					<?xml version="1.0" encoding="UTF-8"?>
+					<Error>
+						<Code>BucketAlreadyExists</Code>
+						<Message>The requested bucket name is not available. The bucket namespace is shared by all users of the system. Please select a different name and try again.</Message>
+						<BucketName>${event.bucket}</BucketName>
+						<RequestId>XXXXXXXXXXXXXXXX</RequestId>
+						<HostId>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</HostId>
+					</Error>
+				`)
 				return;
 			}
 
