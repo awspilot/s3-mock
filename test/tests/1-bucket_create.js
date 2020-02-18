@@ -1,7 +1,4 @@
 describe('createBucket', function () {
-	it('sleep', function(done) {
-		setTimeout(done, 4000)
-	})
 
 	it('createBucket() - no location', function(done) {
 
